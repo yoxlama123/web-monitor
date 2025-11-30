@@ -9,8 +9,9 @@ function App() {
 
   // n8n'den veri çekme fonksiyonu
   const fetchPosts = async () => {
+    console.log('--- FETCH POSTS ÇALIŞTIRILDI ---');
     try {
-      const webhookUrl = import.meta.env.WEBHOOK_URL;
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL;
 
       if (!webhookUrl) {
         throw new Error('Webhook URL tanımlanmamış. Lütfen .env dosyasını kontrol edin.');
@@ -55,7 +56,7 @@ function App() {
     const interval = setInterval(() => {
       console.log('Yeni gönderiler kontrol ediliyor...');
       fetchPosts();
-    }, (60 * 60 * 1000)); // 5 dakika
+    }, (60 * 60 * 1000)); // 60 dakika
 
     return () => clearInterval(interval);
   }, []);
