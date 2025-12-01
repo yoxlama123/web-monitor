@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Instagram } from 'lucide-react';
+import { Instagram, LayoutGrid, Globe } from 'lucide-react';
 
 function App() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all');
 
   // n8n'den veri çekme fonksiyonu
   const fetchPosts = async () => {
@@ -65,6 +66,54 @@ function App() {
     ? 'min-h-screen bg-[#0F172A]'
     : 'min-h-screen bg-[#e8e8e8]';
 
+  // Counts calculation
+  const counts = {
+    all: posts.length,
+    instagram: posts.filter(p => p.platform === 'Instagram').length,
+    x: posts.filter(p => p.platform !== 'Instagram').length
+  };
+
+  // Filter logic
+  const filteredPosts = posts.filter(post => {
+    if (filter === 'all') return true;
+    if (filter === 'Instagram') return post.platform === 'Instagram';
+    if (filter === 'X') return post.platform !== 'Instagram';
+    return true;
+  });
+
+  const FilterButton = ({ id, label, icon: Icon, count }) => (
+    <button
+      onClick={() => setFilter(id)}
+      className={`
+        w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+        ${filter === id
+          ? (darkMode ? 'bg-[#334155] text-white shadow-lg' : 'bg-white text-black shadow-md')
+          : (darkMode ? 'text-[#94A3B8] hover:bg-[#1E293B] hover:text-[#E2E8F0]' : 'text-gray-500 hover:bg-white hover:text-gray-900')
+        }
+      `}
+    >
+      <div className="flex items-center gap-3">
+        <Icon className={`w-5 h-5 ${filter === id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`} />
+        <span className="font-medium">{label}</span>
+      </div>
+      <span className={`
+        text-xs font-bold px-2 py-1 rounded-full min-w-[24px] text-center
+        ${filter === id
+          ? (darkMode ? 'bg-[#0F172A] text-white' : 'bg-gray-100 text-black')
+          : (darkMode ? 'bg-[#1E293B] text-[#94A3B8]' : 'bg-gray-200 text-gray-600')
+        }
+      `}>
+        {count}
+      </span>
+    </button>
+  );
+
+  const XIcon = ({ className }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+
   return (
     <div className={rootClasses}>
       {/* Header */}
@@ -104,48 +153,93 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center h-96">
-            <div className={darkMode ? 'text-[#94A3B8] text-lg' : 'text-gray-600 text-lg'}>
-              Loading...
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+
+        {/* Sidebar Filter - Far Left */}
+        <aside className={`
+          lg:w-72 flex-shrink-0 border-r
+          ${darkMode ? 'bg-[#1E293B]/30 border-[#334155]' : 'bg-white/50 border-gray-200'}
+        `}>
+          <div className="sticky top-0 p-6 space-y-6">
+            <div className="flex items-center gap-3 px-2">
+              <Globe className={`w-6 h-6 ${darkMode ? 'text-white' : 'text-black'}`} />
+              <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-black'}`}>
+                Platformlar
+              </h2>
+            </div>
+
+            <div className={`space-y-2 pb-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <FilterButton
+                id="all"
+                label="Tümü"
+                icon={LayoutGrid}
+                count={counts.all}
+              />
+              <FilterButton
+                id="Instagram"
+                label="Instagram"
+                icon={Instagram}
+                count={counts.instagram}
+              />
+              <FilterButton
+                id="X"
+                label="X"
+                icon={XIcon}
+                count={counts.x}
+              />
             </div>
           </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-96 gap-4">
-            <div className={darkMode ? 'text-red-400 text-lg' : 'text-red-600 text-lg'}>
-              ⚠️ {error}
-            </div>
-            <button
-              onClick={() => {
-                setLoading(true);
-                fetchPosts();
-              }}
-              className={`
-                px-6 py-2 rounded-lg font-medium transition-colors
-                ${darkMode
-                  ? 'bg-[#334155] text-[#E2E8F0] hover:bg-[#475569]'
-                  : 'bg-gray-200 text-black hover:bg-gray-300'
-                }
-              `}
-            >
-              Tekrar Dene
-            </button>
+        </aside>
+
+        {/* Feed Area - Centered */}
+        <main className="flex-1 min-w-0 py-8 px-4">
+          <div className="max-w-2xl mx-auto">
+            {loading ? (
+              <div className="flex items-center justify-center h-96">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className={darkMode ? 'text-[#94A3B8]' : 'text-gray-600'}>
+                    Yükleniyor...
+                  </div>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-96 gap-4">
+                <div className={darkMode ? 'text-red-400 text-lg' : 'text-red-600 text-lg'}>
+                  ⚠️ {error}
+                </div>
+                <button
+                  onClick={() => {
+                    setLoading(true);
+                    fetchPosts();
+                  }}
+                  className={`
+                    px-6 py-2 rounded-lg font-medium transition-colors
+                    ${darkMode
+                      ? 'bg-[#334155] text-[#E2E8F0] hover:bg-[#475569]'
+                      : 'bg-gray-200 text-black hover:bg-gray-300'
+                    }
+                  `}
+                >
+                  Tekrar Dene
+                </button>
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="flex items-center justify-center h-96">
+                <div className={darkMode ? 'text-[#94A3B8] text-lg' : 'text-gray-500 text-lg'}>
+                  Bu kategoride gönderi bulunamadı
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredPosts.map((post, index) => (
+                  <PostCard key={index} post={post} index={index} darkMode={darkMode} />
+                ))}
+              </div>
+            )}
           </div>
-        ) : posts.length === 0 ? (
-          <div className="flex items-center justify-center h-96">
-            <div className={darkMode ? 'text-[#94A3B8] text-lg' : 'text-gray-500 text-lg'}>
-              Henüz yeni gönderi yok
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {posts.map((post, index) => (
-              <PostCard key={index} post={post} index={index} darkMode={darkMode} />
-            ))}
-          </div>
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
@@ -154,8 +248,11 @@ function PostCard({ post, index, darkMode }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), index * 100);
-  }, [index]);
+    // Reset visibility when filter changes or new posts load
+    setIsVisible(false);
+    const timer = setTimeout(() => setIsVisible(true), index * 100);
+    return () => clearTimeout(timer);
+  }, [index, post]); // Added post dependency to re-animate on filter change
 
   const truncateText = (text, maxLength) => {
     if (!text || text.length <= maxLength) return text;
@@ -179,7 +276,7 @@ function PostCard({ post, index, darkMode }) {
         rounded-2xl shadow-lg overflow-hidden transition-all duration-500
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
         ${darkMode ? 'bg-[#1E293B]' : 'bg-white'}
-        w-[468px] max-w-full mx-auto
+        w-[468px] max-w-full
       `}
     >
       <div className="p-5">

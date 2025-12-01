@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Scrollbar'ı her zaman görünür yap ve yer kaplasın */
+html {
+    overflow-y: scroll;
+}
