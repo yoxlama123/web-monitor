@@ -27,7 +27,17 @@ const Modal = ({
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    e.currentTarget.dataset.backdropClicked = 'true';
+                }
+            }}
+            onMouseUp={(e) => {
+                if (e.target === e.currentTarget && e.currentTarget.dataset.backdropClicked === 'true') {
+                    onClose();
+                }
+                delete e.currentTarget.dataset.backdropClicked;
+            }}
         >
             <div
                 className={`w-full max-w-md rounded-2xl shadow-2xl p-6 relative ${darkMode ? 'bg-[#1E293B] border border-[#334155]' : 'bg-white'}`}
