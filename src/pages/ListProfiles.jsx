@@ -21,6 +21,8 @@ const ListProfiles = () => {
     const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, profile: null });
     const [editProfile, setEditProfile] = useState({ isOpen: false, profile: null, newCategory: '' });
     const [editStatus, setEditStatus] = useState({ loading: false, message: null, type: null });
+    const [selectedProfiles, setSelectedProfiles] = useState([]);
+    const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
     // Fetch profiles
     const { data: profiles, loading, error, refetch } = useFetch(() => api.listProfiles());
@@ -125,6 +127,43 @@ const ListProfiles = () => {
         }
     };
 
+    // Handle bulk delete
+    const handleBulkDelete = async () => {
+        try {
+            const webhookUrl = import.meta.env.VITE_COMMAND_WEBHOOK_URL || import.meta.env.VITE_WEBHOOK_URL;
+            const urlString = selectedProfiles.map(id => {
+                const profile = profiles.find(p => p.id === id);
+                return profile?.profile_url;
+            }).filter(Boolean).join(',');
+
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'removeurl', url: urlString })
+            });
+
+            const responseData = await response.json();
+            if (response.ok) {
+                setBulkDeleteConfirm(false);
+                setSelectedProfiles([]);
+                refetch();
+            } else {
+                throw new Error(responseData.message || 'Toplu silme işlemi başarısız oldu.');
+            }
+        } catch (err) {
+            alert('Bir hata oluştu: ' + err.message);
+            setBulkDeleteConfirm(false);
+        }
+    };
+
+    const toggleProfileSelection = (profileId) => {
+        setSelectedProfiles(prev => prev.includes(profileId) ? prev.filter(id => id !== profileId) : [...prev, profileId]);
+    };
+
+    const toggleSelectAll = () => {
+        setSelectedProfiles(selectedProfiles.length === filteredProfiles.length ? [] : filteredProfiles.map(p => p.id));
+    };
+
     // Calculate counts
     const counts = {
         all: profiles?.length || 0,
@@ -166,9 +205,41 @@ const ListProfiles = () => {
                 currentPage="list"
             >
                 <div className="max-w-4xl mx-auto">
-                    <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-black'}`}>
-                        Profil Listesi
-                    </h2>
+                    <div className="mb-6">
+                        <div className="flex items-start justify-between">
+                            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>
+                                Profil Listesi
+                            </h2>
+                            {!loading && !error && filteredProfiles.length > 0 && selectedProfiles.length > 0 && (
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <input type="checkbox" checked={selectedProfiles.length === filteredProfiles.length} onChange={toggleSelectAll} className="w-4 h-4 rounded cursor-pointer" />
+                                        <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Tümünü Seç</span>
+                                    </div>
+                                    {/* Bulk Edit - Disabled for now */}
+                                    <button disabled className={`p-2 rounded-lg font-medium transition-colors opacity-50 cursor-not-allowed ${darkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`} title="Toplu düzenleme (yakında)">
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <div className="relative">
+                                        <button onClick={() => setBulkDeleteConfirm(!bulkDeleteConfirm)} className={`p-2 rounded-lg font-medium transition-colors ${darkMode ? 'bg-red-900/20 text-red-400 hover:bg-red-900/40' : 'bg-red-50 text-red-600 hover:bg-red-100'}`} title={`${selectedProfiles.length} profil sil`}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                        {bulkDeleteConfirm && (
+                                            <div className={`absolute right-0 top-full mt-2 w-80 rounded-lg shadow-xl p-4 z-50 ${darkMode ? 'bg-[#1E293B] border border-[#334155]' : 'bg-white border border-gray-200'}`}>
+                                                <p className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    <span className={`font-bold px-2 py-1 rounded ${darkMode ? 'bg-red-900/40 text-red-300' : 'bg-red-100 text-red-700'}`}>{selectedProfiles.length} profil</span> silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                                                </p>
+                                                <div className="flex gap-2">
+                                                    <button onClick={handleBulkDelete} className="flex-1 py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white text-sm rounded font-medium transition-colors">Evet, Sil</button>
+                                                    <button onClick={() => setBulkDeleteConfirm(false)} className={`flex-1 py-1.5 px-3 text-sm rounded font-medium transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}>İptal</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     {loading ? (
                         <LoadingSpinner darkMode={darkMode} />
@@ -193,6 +264,7 @@ const ListProfiles = () => {
                                     >
                                         <div className="p-5">
                                             <div className="flex items-center gap-4">
+                                                <input type="checkbox" checked={selectedProfiles.includes(profile.id)} onChange={() => toggleProfileSelection(profile.id)} className="w-5 h-5 rounded cursor-pointer flex-shrink-0" onClick={(e) => e.stopPropagation()} />
                                                 {/* Profile Image */}
                                                 <a
                                                     href={profile.profile_url}
