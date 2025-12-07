@@ -23,6 +23,8 @@ const ListProfiles = () => {
     const [editStatus, setEditStatus] = useState({ loading: false, message: null, type: null });
     const [selectedProfiles, setSelectedProfiles] = useState([]);
     const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+    const [bulkEditModal, setBulkEditModal] = useState({ isOpen: false, newCategory: '' });
+    const [bulkEditStatus, setBulkEditStatus] = useState({ loading: false, message: null, type: null });
 
     // Fetch profiles
     const { data: profiles, loading, error, refetch } = useFetch(() => api.listProfiles());
@@ -156,6 +158,55 @@ const ListProfiles = () => {
         }
     };
 
+    // Handle bulk edit
+    const handleBulkEdit = async () => {
+        if (!bulkEditModal.newCategory.trim()) {
+            setBulkEditStatus({ loading: false, message: 'Lütfen kategori girin.', type: 'error' });
+            return;
+        }
+
+        setBulkEditStatus({ loading: true, message: null, type: null });
+
+        try {
+            const webhookUrl = import.meta.env.VITE_COMMAND_WEBHOOK_URL || import.meta.env.VITE_WEBHOOK_URL;
+            const urlString = selectedProfiles.map(id => {
+                const profile = profiles.find(p => p.id === id);
+                return profile?.profile_url;
+            }).filter(Boolean).join(',');
+
+            const payload = {
+                action: 'editprofile',
+                url: urlString,
+                category: bulkEditModal.newCategory.trim()
+            };
+
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const responseData = await response.json();
+            if (response.ok) {
+                setBulkEditStatus({
+                    loading: false,
+                    message: responseData.message || 'Kategoriler başarıyla güncellendi!',
+                    type: 'success'
+                });
+                setTimeout(() => {
+                    setBulkEditModal({ isOpen: false, newCategory: '' });
+                    setBulkEditStatus({ loading: false, message: null, type: null });
+                    setSelectedProfiles([]);
+                    refetch();
+                }, 2000);
+            } else {
+                throw new Error(responseData.message || 'İşlem başarısız oldu.');
+            }
+        } catch (err) {
+            setBulkEditStatus({ loading: false, message: 'Bir hata oluştu: ' + err.message, type: 'error' });
+        }
+    };
+
     const toggleProfileSelection = (profileId) => {
         setSelectedProfiles(prev => prev.includes(profileId) ? prev.filter(id => id !== profileId) : [...prev, profileId]);
     };
@@ -216,10 +267,37 @@ const ListProfiles = () => {
                                         <input type="checkbox" checked={selectedProfiles.length === filteredProfiles.length} onChange={toggleSelectAll} className="w-4 h-4 rounded cursor-pointer" />
                                         <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Tümünü Seç</span>
                                     </div>
-                                    {/* Bulk Edit - Disabled for now */}
-                                    <button disabled className={`p-2 rounded-lg font-medium transition-colors opacity-50 cursor-not-allowed ${darkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`} title="Toplu düzenleme (yakında)">
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
+                                    {/* Bulk Edit */}
+                                    <div className="relative">
+                                        <button onClick={() => setBulkEditModal({ isOpen: !bulkEditModal.isOpen, newCategory: '' })} className={`p-2 rounded-lg font-medium transition-colors ${darkMode ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/40' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`} title={`${selectedProfiles.length} profil düzenle`}>
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        {bulkEditModal.isOpen && (
+                                            <div className={`absolute right-0 top-full mt-2 w-80 rounded-lg shadow-xl p-4 z-50 ${darkMode ? 'bg-[#1E293B] border border-[#334155]' : 'bg-white border border-gray-200'}`}>
+                                                <p className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    <span className={`font-bold px-2 py-1 rounded ${darkMode ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>{selectedProfiles.length} profil</span> için kategori güncellenecek.
+                                                </p>
+                                                <input
+                                                    type="text"
+                                                    value={bulkEditModal.newCategory}
+                                                    onChange={(e) => setBulkEditModal({ ...bulkEditModal, newCategory: e.target.value })}
+                                                    placeholder="Kategori girin"
+                                                    className={`w-full px-3 py-1.5 mb-3 text-sm rounded border focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-[#0F172A] border-[#334155] text-white placeholder-gray-500' : 'bg-white border-gray-300 text-black'}`}
+                                                />
+                                                {bulkEditStatus.message && (
+                                                    <div className={`mb-3 p-2 rounded text-xs ${bulkEditStatus.type === 'error' ? darkMode ? 'bg-red-900/20 text-red-400' : 'bg-red-50 text-red-600' : darkMode ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'}`}>
+                                                        {bulkEditStatus.message}
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-2">
+                                                    <button onClick={handleBulkEdit} disabled={bulkEditStatus.loading} className="flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded font-medium transition-colors">
+                                                        {bulkEditStatus.loading ? 'Güncelleniyor...' : 'Güncelle'}
+                                                    </button>
+                                                    <button onClick={() => { setBulkEditModal({ isOpen: false, newCategory: '' }); setBulkEditStatus({ loading: false, message: null, type: null }); }} disabled={bulkEditStatus.loading} className={`flex-1 py-1.5 px-3 text-sm rounded font-medium transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}>İptal</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="relative">
                                         <button onClick={() => setBulkDeleteConfirm(!bulkDeleteConfirm)} className={`p-2 rounded-lg font-medium transition-colors ${darkMode ? 'bg-red-900/20 text-red-400 hover:bg-red-900/40' : 'bg-red-50 text-red-600 hover:bg-red-100'}`} title={`${selectedProfiles.length} profil sil`}>
                                             <Trash2 className="w-4 h-4" />
@@ -387,6 +465,7 @@ const ListProfiles = () => {
                 }}
                 onSubmit={handleCommand}
             />
+
 
             {/* Edit Profile Modal */}
             {editProfile.isOpen && editProfile.profile && (
