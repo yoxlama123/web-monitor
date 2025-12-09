@@ -93,12 +93,15 @@ class ApiService {
      * List all monitored profiles
      * @returns {Promise<Array>} Profiles array
      */
-    async listProfiles() {
+    async listProfiles(options = {}) {
+        const payload = {
+            action: 'listurl',
+            ...options
+        };
+
         const data = await this.request(this.commandUrl, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'listurl'
-            })
+            body: JSON.stringify(payload)
         });
 
         // Normalize response to array
