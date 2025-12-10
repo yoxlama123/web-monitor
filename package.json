@@ -1,11 +1,7 @@
 {
   "name": "monitoring-dashboard",
   "private": true,
-<<<<<<< HEAD
   "version": "0.8.1",
-=======
-  "version": "0.8.0",
->>>>>>> 4949068e486364ce2af57fbdefb91f7642202f66
   "type": "module",
   "scripts": {
     "dev": "vite",
