@@ -33,10 +33,10 @@ class ApiService {
     /**
      * Get posts from webhook
      * @param {number} page - Page number (default: 1)
-     * @param {number} pageSize - Page size (default: 5)
+     * @param {number} pageSize - Page size (default: 10)
      * @returns {Promise<Array>} Posts array
      */
-    async getPosts(page = 1, pageSize = 5) {
+    async getPosts(page = 1, pageSize = 10) {
         if (!this.baseUrl) {
             throw new Error('Webhook URL tanımlanmamış. Lütfen .env dosyasını kontrol edin.');
         }
