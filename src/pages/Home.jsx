@@ -16,12 +16,78 @@ const Home = () => {
     const { darkMode, setDarkMode, filter, setFilter } = useApp();
     const modal = useModalState();
     const webhook = useWebhook();
+    const [posts, setPosts] = React.useState([]);
+    const [page, setPage] = React.useState(1);
+    const [hasMore, setHasMore] = React.useState(true);
+    const [loading, setLoading] = React.useState(true);
+    const [loadingMore, setLoadingMore] = React.useState(false);
+    const [error, setError] = React.useState(null);
+    const observerTarget = React.useRef(null);
+    const PAGE_SIZE = 10;
 
-    // Fetch posts with auto-refresh
-    const { data: posts, loading, error, refetch } = useFetch(
-        () => api.getPosts(),
-        INTERVALS.FETCH_POSTS
-    );
+    // Fetch posts function
+    const loadPosts = React.useCallback(async (pageNum, isInitial = false) => {
+        try {
+            if (isInitial) setLoading(true);
+            else setLoadingMore(true);
+
+            console.log(`Loading posts: Page ${pageNum}`);
+            const newPosts = await api.getPosts(pageNum, PAGE_SIZE);
+
+            if (newPosts.length < PAGE_SIZE) {
+                setHasMore(false);
+            }
+
+            setPosts(prev => isInitial ? newPosts : [...prev, ...newPosts]);
+            setError(null);
+        } catch (err) {
+            console.error('Error loading posts:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    }, []);
+
+    // Initial load
+    React.useEffect(() => {
+        loadPosts(1, true);
+    }, [loadPosts]);
+
+    // Infinite scroll observer
+    React.useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+                    setPage(prev => {
+                        const nextPage = prev + 1;
+                        loadPosts(nextPage);
+                        return nextPage;
+                    });
+                }
+            },
+            {
+                threshold: 0.1,
+                rootMargin: '2500px' // Start loading 2500px before reaching the bottom
+            }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [hasMore, loading, loadingMore, loadPosts]);
+
+    const refetch = () => {
+        setPage(1);
+        setHasMore(true);
+        loadPosts(1, true);
+    };
 
     // Handle command submission
     const handleCommand = async () => {
@@ -50,6 +116,8 @@ const Home = () => {
             setTimeout(() => {
                 modal.closeModal();
                 webhook.reset();
+                // Refresh list after add/remove
+                refetch();
             }, ANIMATION_DELAYS.SUCCESS_MESSAGE);
 
         } catch (err) {
@@ -60,15 +128,15 @@ const Home = () => {
     // Calculate counts
     const counts = {
         all: posts?.length || 0,
-        instagram: posts?.filter(p => p.platform === 'Instagram').length || 0,
-        x: posts?.filter(p => p.platform !== 'Instagram').length || 0
+        instagram: posts?.filter(p => p.platform === 'instagram').length || 0,
+        x: posts?.filter(p => p.platform !== 'instagram').length || 0
     };
 
     // Filter posts
     const filteredPosts = posts?.filter(post => {
         if (filter === 'all') return true;
-        if (filter === 'Instagram') return post.platform === 'Instagram';
-        if (filter === 'X') return post.platform !== 'Instagram';
+        if (filter === 'instagram') return post.platform === 'instagram';
+        if (filter === 'x') return post.platform !== 'instagram';
         return true;
     }) || [];
 
@@ -84,7 +152,7 @@ const Home = () => {
                 onRemoveUrl={() => modal.openModal('remove')}
                 currentPage="home"
             >
-                <div className="max-w-2xl mx-auto flex flex-col items-center">
+                <div className="max-w-2xl mx-auto flex flex-col items-center pb-8">
                     {loading ? (
                         <LoadingSpinner darkMode={darkMode} />
                     ) : error ? (
@@ -98,8 +166,25 @@ const Home = () => {
                     ) : (
                         <div className="space-y-6 w-full flex flex-col items-center">
                             {filteredPosts.map((post, index) => (
-                                <PostCard key={index} post={post} index={index} darkMode={darkMode} />
+                                <PostCard key={`${post.id || index}-${index}`} post={post} index={index} darkMode={darkMode} />
                             ))}
+
+                            {/* Loading Sentinel */}
+                            {hasMore && (
+                                <div ref={observerTarget} className="flex justify-center w-full min-h-[1px]">
+                                    {loadingMore && (
+                                        <div className="p-4">
+                                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {!hasMore && posts.length > 0 && (
+                                <div className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} py-4`}>
+                                    Tüm gönderiler yüklendi
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

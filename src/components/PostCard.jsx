@@ -29,7 +29,7 @@ const PostCard = ({ post, index, darkMode }) => {
                         </div>
                     </div>
                     <div className={darkMode ? 'text-[#E2E8F0]' : 'text-gray-800'}>
-                        {post.platform === PLATFORMS.INSTAGRAM ? (
+                        {post.platform?.toLowerCase() === 'instagram' ? (
                             <Instagram className="w-6 h-6 flex-shrink-0" />
                         ) : (
                             <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

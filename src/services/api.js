@@ -32,25 +32,38 @@ class ApiService {
 
     /**
      * Get posts from webhook
+     * @param {number} page - Page number (default: 1)
+     * @param {number} pageSize - Page size (default: 5)
      * @returns {Promise<Array>} Posts array
      */
-    async getPosts() {
+    async getPosts(page = 1, pageSize = 5) {
         if (!this.baseUrl) {
             throw new Error('Webhook URL tanımlanmamış. Lütfen .env dosyasını kontrol edin.');
         }
 
+        console.log(`Fetching posts: Page ${page}, Size ${pageSize}`);
+
         const data = await this.request(this.baseUrl, {
-            method: 'GET'
+            method: 'POST',
+            body: JSON.stringify({
+                page,
+                pageSize
+            })
         });
 
         // Normalize response to array
+        let posts = [];
         if (Array.isArray(data)) {
-            return data;
+            posts = data;
         } else if (data && typeof data === 'object') {
-            return [data];
+            if (Array.isArray(data.data)) {
+                posts = data.data;
+            } else {
+                posts = [data];
+            }
         }
 
-        return [];
+        return posts;
     }
 
     /**
