@@ -38,6 +38,13 @@ const Home = () => {
                 setHasMore(false);
             }
 
+
+
+
+
+
+
+
             setPosts(prev => isInitial ? newPosts : [...prev, ...newPosts]);
             setError(null);
         } catch (err) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VideoPlayer from './VideoPlayer';
 import { Instagram } from 'lucide-react';
 import { truncateText } from '../utils/text';
 import { ANIMATION_DELAYS, CARD_DIMENSIONS, TEXT_LIMITS, PLATFORMS } from '../constants';
@@ -40,8 +41,10 @@ const PostCard = ({ post, index, darkMode }) => {
                 </div>
             </div>
 
-            {/* Image without padding - full width */}
-            {post.post_image && (
+            {/* Media (Video or Image) - full width */}
+            {post.post_video ? (
+                <VideoPlayer src={post.post_video} poster={post.post_image} />
+            ) : post.post_image && (
                 <a href={post.url} target="_blank" rel="noopener noreferrer" className="block">
                     <img src={post.post_image} alt="Post" className="w-full h-auto object-contain hover:opacity-95 transition-opacity" style={{ maxHeight: '621px' }} />
                 </a>

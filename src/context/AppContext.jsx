@@ -11,12 +11,15 @@ const AppContext = createContext(undefined);
 export const AppProvider = ({ children }) => {
     const [darkMode, setDarkMode] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [isGlobalMuted, setIsGlobalMuted] = useState(true);
 
     const value = {
         darkMode,
         setDarkMode,
         filter,
-        setFilter
+        setFilter,
+        isGlobalMuted,
+        setIsGlobalMuted
     };
 
     return (
