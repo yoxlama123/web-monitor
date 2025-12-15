@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import VideoPlayer from './VideoPlayer';
 import { Instagram } from 'lucide-react';
 import { truncateText } from '../utils/text';
+import { formatTimeAgo } from '../utils/date';
 import { ANIMATION_DELAYS, CARD_DIMENSIONS, TEXT_LIMITS, PLATFORMS } from '../constants';
 
 const PostCard = ({ post, index, darkMode }) => {
@@ -26,7 +27,7 @@ const PostCard = ({ post, index, darkMode }) => {
                             <a href={post.profile_url} target="_blank" rel="noopener noreferrer" className={`font-bold text-base block truncate transition-colors ${darkMode ? 'text-[#E2E8F0] hover:text-white' : 'text-black hover:text-gray-700'}`} onClick={(e) => e.stopPropagation()} style={{ textDecoration: 'none' }}>
                                 {post.profile_name}
                             </a>
-                            <p className={`text-xs ${darkMode ? 'text-[#94A3B8]' : 'text-gray-400'}`}>{post.timestamp}</p>
+                            <p className={`text-xs ${darkMode ? 'text-[#94A3B8]' : 'text-gray-400'}`}>{formatTimeAgo(post.__sort_date)}</p>
                         </div>
                     </div>
                     <div className={darkMode ? 'text-[#E2E8F0]' : 'text-gray-800'}>
