@@ -108,13 +108,13 @@ const Home = () => {
 
             if (action === 'addurl') {
                 await webhook.sendCommand(action, {
-                    url: profileUrl,
+                    profile_url: profileUrl,
                     category: modal.formData.category || null,
                     platform: modal.formData.platform
                 });
             } else {
                 await webhook.sendCommand(action, {
-                    url: profileUrl,
+                    profile_url: profileUrl,
                     platform: modal.formData.platform
                 });
             }
