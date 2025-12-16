@@ -48,13 +48,13 @@ const ListProfiles = () => {
 
             if (action === 'addurl') {
                 await webhook.sendCommand(action, {
-                    url: profileUrl,
+                    profile_url: profileUrl,
                     category: modal.formData.category || null,
                     platform: modal.formData.platform
                 });
             } else {
                 await webhook.sendCommand(action, {
-                    url: profileUrl,
+                    profile_url: profileUrl,
                     platform: modal.formData.platform
                 });
             }
@@ -75,7 +75,7 @@ const ListProfiles = () => {
     const handleDeleteProfile = async (profile) => {
         try {
             await webhook.sendCommand('removeurl', {
-                url: profile.profile_url,
+                profile_url: profile.profile_url,
                 platform: profile.platform
             });
 
@@ -101,7 +101,7 @@ const ListProfiles = () => {
 
             const payload = {
                 action: 'editprofile',
-                url: editProfile.profile.profile_url,
+                profile_url: editProfile.profile.profile_url,
                 category: editProfile.newCategory.trim()
             };
 
@@ -148,7 +148,7 @@ const ListProfiles = () => {
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'removeurl', url: urlString })
+                body: JSON.stringify({ action: 'removeurl', profile_url: urlString })
             });
 
             const responseData = await response.json();
@@ -183,7 +183,7 @@ const ListProfiles = () => {
 
             const payload = {
                 action: 'editprofile',
-                url: urlString,
+                profile_url: urlString,
                 category: bulkEditModal.newCategory.trim()
             };
 
@@ -471,8 +471,8 @@ const ListProfiles = () => {
                                             setPage(1);
                                         }}
                                         className={`appearance-none pl-4 pr-8 py-1.5 text-sm font-bold rounded-md outline-none cursor-pointer transition-colors ${darkMode
-                                                ? 'bg-slate-800 text-white hover:bg-slate-700'
-                                                : 'bg-white text-gray-900 hover:bg-gray-50'
+                                            ? 'bg-slate-800 text-white hover:bg-slate-700'
+                                            : 'bg-white text-gray-900 hover:bg-gray-50'
                                             }`}
                                     >
                                         <option value={5}>5</option>
@@ -494,10 +494,10 @@ const ListProfiles = () => {
                                     onClick={() => setPage(1)}
                                     disabled={page === 1}
                                     className={`p-2 rounded-lg transition-all ${page === 1
-                                            ? 'opacity-30 cursor-not-allowed text-gray-400'
-                                            : darkMode
-                                                ? 'text-gray-400 hover:text-white hover:bg-slate-800'
-                                                : 'text-gray-600 hover:text-black hover:bg-gray-100'
+                                        ? 'opacity-30 cursor-not-allowed text-gray-400'
+                                        : darkMode
+                                            ? 'text-gray-400 hover:text-white hover:bg-slate-800'
+                                            : 'text-gray-600 hover:text-black hover:bg-gray-100'
                                         }`}
                                     title="İlk Sayfa"
                                 >
@@ -508,10 +508,10 @@ const ListProfiles = () => {
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
                                     className={`p-2 rounded-lg transition-all ${page === 1
-                                            ? 'opacity-30 cursor-not-allowed text-gray-400'
-                                            : darkMode
-                                                ? 'text-gray-400 hover:text-white hover:bg-slate-800'
-                                                : 'text-gray-600 hover:text-black hover:bg-gray-100'
+                                        ? 'opacity-30 cursor-not-allowed text-gray-400'
+                                        : darkMode
+                                            ? 'text-gray-400 hover:text-white hover:bg-slate-800'
+                                            : 'text-gray-600 hover:text-black hover:bg-gray-100'
                                         }`}
                                     title="Önceki Sayfa"
                                 >
@@ -527,10 +527,10 @@ const ListProfiles = () => {
                                     onClick={() => setPage(p => p + 1)}
                                     disabled={pageSize === 'all' || profiles?.length < pageSize}
                                     className={`p-2 rounded-lg transition-all ${(pageSize === 'all' || profiles?.length < pageSize)
-                                            ? 'opacity-30 cursor-not-allowed text-gray-400'
-                                            : darkMode
-                                                ? 'text-gray-400 hover:text-white hover:bg-slate-800'
-                                                : 'text-gray-600 hover:text-black hover:bg-gray-100'
+                                        ? 'opacity-30 cursor-not-allowed text-gray-400'
+                                        : darkMode
+                                            ? 'text-gray-400 hover:text-white hover:bg-slate-800'
+                                            : 'text-gray-600 hover:text-black hover:bg-gray-100'
                                         }`}
                                     title="Sonraki Sayfa"
                                 >

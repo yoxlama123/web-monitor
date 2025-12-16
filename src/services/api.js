@@ -78,7 +78,7 @@ class ApiService {
             method: 'POST',
             body: JSON.stringify({
                 action: 'addurl',
-                url,
+                profile_url: url,
                 category: category || null,
                 platform
             })
@@ -96,7 +96,7 @@ class ApiService {
             method: 'POST',
             body: JSON.stringify({
                 action: 'removeurl',
-                url,
+                profile_url: url,
                 platform
             })
         });
