@@ -13,6 +13,7 @@ import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorDisplay from '../components/common/ErrorDisplay';
+import { PlatformIcon } from '../components/icons/PlatformIcons';
 
 const ListProfiles = () => {
     const { darkMode, setDarkMode, filter, setFilter } = useApp();
@@ -50,7 +51,8 @@ const ListProfiles = () => {
                 await webhook.sendCommand(action, {
                     profile_url: profileUrl,
                     category: modal.formData.category || null,
-                    platform: modal.formData.platform
+                    platform: modal.formData.platform,
+                    connections: modal.formData.connections
                 });
             } else {
                 await webhook.sendCommand(action, {
@@ -426,6 +428,29 @@ const ListProfiles = () => {
                                                             </span>
                                                         </div>
                                                     </div>
+
+                                                    {/* Connections */}
+                                                    {profile.connections && profile.connections.length > 0 && (
+                                                        <div className="mt-3 flex items-center gap-3 flex-wrap">
+                                                            <div className="flex items-center gap-2">
+                                                                {profile.connections.map((conn, i) => (
+                                                                    <a
+                                                                        key={i}
+                                                                        href={conn.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className={`p-1.5 rounded-lg transition-colors ${darkMode
+                                                                            ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700'
+                                                                            : 'bg-white hover:bg-gray-50 text-gray-500 hover:text-black border border-gray-200 shadow-sm'
+                                                                            }`}
+                                                                        title={conn.platform}
+                                                                    >
+                                                                        <PlatformIcon platform={conn.platform} className="w-4 h-4" />
+                                                                    </a>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Action Buttons */}
@@ -558,6 +583,12 @@ const ListProfiles = () => {
                     type: webhook.error ? 'error' : 'success'
                 }}
                 onSubmit={handleCommand}
+                connectionDropdownOpen={modal.connectionDropdownOpen}
+                addConnection={modal.addConnection}
+                removeConnection={modal.removeConnection}
+                updateConnection={modal.updateConnection}
+                toggleConnectionDropdown={modal.toggleConnectionDropdown}
+                selectConnectionPlatform={modal.selectConnectionPlatform}
             />
 
 

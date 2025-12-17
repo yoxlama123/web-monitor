@@ -25,6 +25,9 @@ export const CARD_DIMENSIONS = {
 export const PLATFORMS = {
     INSTAGRAM: 'Instagram',
     X: 'X',
+    TIKTOK: 'TikTok',
+    ONLYFANS: 'OnlyFans',
+    FANSLY: 'Fansly',
 };
 
 // Text truncation limits

@@ -110,7 +110,8 @@ const Home = () => {
                 await webhook.sendCommand(action, {
                     profile_url: profileUrl,
                     category: modal.formData.category || null,
-                    platform: modal.formData.platform
+                    platform: modal.formData.platform,
+                    connections: modal.formData.connections
                 });
             } else {
                 await webhook.sendCommand(action, {
@@ -213,6 +214,12 @@ const Home = () => {
                     type: webhook.error ? 'error' : 'success'
                 }}
                 onSubmit={handleCommand}
+                connectionDropdownOpen={modal.connectionDropdownOpen}
+                addConnection={modal.addConnection}
+                removeConnection={modal.removeConnection}
+                updateConnection={modal.updateConnection}
+                toggleConnectionDropdown={modal.toggleConnectionDropdown}
+                selectConnectionPlatform={modal.selectConnectionPlatform}
             />
         </>
     );

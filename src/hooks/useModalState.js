@@ -11,9 +11,11 @@ export const useModalState = () => {
     const [formData, setFormData] = useState({
         url: '',
         category: '',
-        platform: PLATFORMS.INSTAGRAM
+        platform: PLATFORMS.INSTAGRAM,
+        connections: []
     });
     const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+    const [connectionDropdownOpen, setConnectionDropdownOpen] = useState(null); // index of open dropdown
 
     /**
      * Open modal with specified type
@@ -25,9 +27,11 @@ export const useModalState = () => {
         setFormData({
             url: '',
             category: '',
-            platform: PLATFORMS.INSTAGRAM
+            platform: PLATFORMS.INSTAGRAM,
+            connections: []
         });
         setIsPlatformDropdownOpen(false);
+        setConnectionDropdownOpen(null);
     };
 
     /**
@@ -37,6 +41,7 @@ export const useModalState = () => {
         setIsOpen(false);
         setType(null);
         setIsPlatformDropdownOpen(false);
+        setConnectionDropdownOpen(null);
     };
 
     /**
@@ -72,6 +77,38 @@ export const useModalState = () => {
         setIsPlatformDropdownOpen(false);
     };
 
+    const addConnection = () => {
+        setFormData(prev => ({
+            ...prev,
+            connections: [...prev.connections, { platform: PLATFORMS.INSTAGRAM, url: '' }]
+        }));
+    };
+
+    const removeConnection = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            connections: prev.connections.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updateConnection = (index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            connections: prev.connections.map((conn, i) =>
+                i === index ? { ...conn, [field]: value } : conn
+            )
+        }));
+    };
+
+    const toggleConnectionDropdown = (index) => {
+        setConnectionDropdownOpen(prev => prev === index ? null : index);
+    };
+
+    const selectConnectionPlatform = (index, platform) => {
+        updateConnection(index, 'platform', platform);
+        setConnectionDropdownOpen(null);
+    };
+
     return {
         isOpen,
         type,
@@ -82,6 +119,12 @@ export const useModalState = () => {
         updateField,
         updateFields,
         togglePlatformDropdown,
-        selectPlatform
+        selectPlatform,
+        connectionDropdownOpen,
+        addConnection,
+        removeConnection,
+        updateConnection,
+        toggleConnectionDropdown,
+        selectConnectionPlatform
     };
 };
