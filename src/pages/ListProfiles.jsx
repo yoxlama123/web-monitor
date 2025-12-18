@@ -246,6 +246,29 @@ const ListProfiles = () => {
         return true;
     }) || [];
 
+    const getCategoryBadgeColor = (category) => {
+        if (!category || category === '-') return darkMode
+            ? 'bg-gray-800 text-gray-400 border-gray-700'
+            : 'bg-gray-100 text-gray-600 border-gray-200';
+
+        const colors = [
+            { light: 'bg-blue-100 text-blue-700 border-blue-200', dark: 'bg-blue-900/40 text-blue-300 border-blue-800' },
+            { light: 'bg-purple-100 text-purple-700 border-purple-200', dark: 'bg-purple-900/40 text-purple-300 border-purple-800' },
+            { light: 'bg-emerald-100 text-emerald-700 border-emerald-200', dark: 'bg-emerald-900/40 text-emerald-300 border-emerald-800' },
+            { light: 'bg-amber-100 text-amber-700 border-amber-200', dark: 'bg-amber-900/40 text-amber-300 border-amber-800' },
+            { light: 'bg-rose-100 text-rose-700 border-rose-200', dark: 'bg-rose-900/40 text-rose-300 border-rose-800' },
+            { light: 'bg-indigo-100 text-indigo-700 border-indigo-200', dark: 'bg-indigo-900/40 text-indigo-300 border-indigo-800' },
+            { light: 'bg-cyan-100 text-cyan-700 border-cyan-200', dark: 'bg-cyan-900/40 text-cyan-300 border-cyan-800' }
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < category.length; i++) {
+            hash = category.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const color = colors[Math.abs(hash) % colors.length];
+        return darkMode ? color.dark : color.light;
+    };
+
     const XIcon = ({ className }) => (
         <svg className={className} viewBox="0 0 24 24" fill="currentColor">
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -350,24 +373,47 @@ const ListProfiles = () => {
                                         className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-200 ${darkMode ? 'bg-[#1E293B] hover:bg-[#334155]' : 'bg-white hover:bg-gray-50'}`}
                                     >
                                         <div className="p-5">
-                                            <div className="flex items-center gap-4">
-                                                <input type="checkbox" checked={selectedProfiles.includes(profile.id)} onChange={() => toggleProfileSelection(profile.id)} className="w-5 h-5 rounded cursor-pointer flex-shrink-0" onClick={(e) => e.stopPropagation()} />
-                                                {/* Profile Image */}
-                                                <a
-                                                    href={profile.profile_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex-shrink-0"
-                                                >
-                                                    <img
-                                                        src={profile.profile_image || '/default-avatar.png'}
-                                                        alt={profileName}
-                                                        className="w-16 h-16 rounded-full object-cover hover:opacity-80 transition-opacity cursor-pointer border-2 border-gray-300"
-                                                        onError={(e) => {
-                                                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect width="64" height="64" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="24" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
-                                                        }}
-                                                    />
-                                                </a>
+                                            <div className="flex items-start gap-4">
+                                                <input type="checkbox" checked={selectedProfiles.includes(profile.id)} onChange={() => toggleProfileSelection(profile.id)} className="w-5 h-5 rounded cursor-pointer flex-shrink-0 self-center" onClick={(e) => e.stopPropagation()} />
+                                                <div className="flex flex-col items-center gap-3 flex-shrink-0">
+                                                    {/* Profile Image */}
+                                                    <a
+                                                        href={profile.profile_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-shrink-0"
+                                                    >
+                                                        <img
+                                                            src={profile.profile_image || '/default-avatar.png'}
+                                                            alt={profileName}
+                                                            className="w-20 h-20 rounded-full object-cover hover:opacity-80 transition-opacity cursor-pointer border-2 border-gray-300"
+                                                            onError={(e) => {
+                                                                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect width="80" height="80" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="monospace" font-size="24" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
+                                                            }}
+                                                        />
+                                                    </a>
+
+                                                    {/* Connections */}
+                                                    {profile.connections && profile.connections.length > 0 && (
+                                                        <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[100px]">
+                                                            {profile.connections.map((conn, i) => (
+                                                                <a
+                                                                    key={i}
+                                                                    href={conn.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={`p-1 rounded-md transition-colors ${darkMode
+                                                                        ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700'
+                                                                        : 'bg-white hover:bg-gray-50 text-gray-500 hover:text-black border border-gray-200 shadow-sm'
+                                                                        }`}
+                                                                    title={conn.platform}
+                                                                >
+                                                                    <PlatformIcon platform={conn.platform} className="w-3.5 h-3.5" />
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
 
                                                 {/* Profile Info */}
                                                 <div className="flex-1 min-w-0">
@@ -390,13 +436,17 @@ const ListProfiles = () => {
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                                        <div>
+                                                        <div className="flex items-center gap-2">
                                                             <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                                                 Kategori:
                                                             </span>{' '}
-                                                            <span className={darkMode ? 'text-gray-300' : 'text-gray-900'}>
-                                                                {profile.category || '-'}
-                                                            </span>
+                                                            {profile.category ? (
+                                                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getCategoryBadgeColor(profile.category)}`}>
+                                                                    {profile.category}
+                                                                </span>
+                                                            ) : (
+                                                                <span className={darkMode ? 'text-gray-300' : 'text-gray-900'}>-</span>
+                                                            )}
                                                         </div>
                                                         <div>
                                                             <span className={`font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -428,33 +478,10 @@ const ListProfiles = () => {
                                                             </span>
                                                         </div>
                                                     </div>
-
-                                                    {/* Connections */}
-                                                    {profile.connections && profile.connections.length > 0 && (
-                                                        <div className="mt-3 flex items-center gap-3 flex-wrap">
-                                                            <div className="flex items-center gap-2">
-                                                                {profile.connections.map((conn, i) => (
-                                                                    <a
-                                                                        key={i}
-                                                                        href={conn.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className={`p-1.5 rounded-lg transition-colors ${darkMode
-                                                                            ? 'bg-gray-800/50 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700'
-                                                                            : 'bg-white hover:bg-gray-50 text-gray-500 hover:text-black border border-gray-200 shadow-sm'
-                                                                            }`}
-                                                                        title={conn.platform}
-                                                                    >
-                                                                        <PlatformIcon platform={conn.platform} className="w-4 h-4" />
-                                                                    </a>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                 </div>
 
                                                 {/* Action Buttons */}
-                                                <div className="flex gap-2 ml-4">
+                                                <div className="flex flex-col gap-2 ml-4 self-center">
                                                     <button
                                                         onClick={() => setEditProfile({ isOpen: true, profile, newCategory: profile.category || '' })}
                                                         className={`p-2 rounded-lg transition-all ${darkMode ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/40' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
