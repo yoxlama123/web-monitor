@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Instagram, Edit2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft } from 'lucide-react';
+import { Instagram, Edit2, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, Plus, Trash, ChevronDown } from 'lucide-react';
+import { PLATFORMS } from '../constants';
 import { useApp } from '../context/AppContext';
 import { useModalState } from '../hooks/useModalState';
 import { useWebhook } from '../hooks/useWebhook';
@@ -20,17 +21,41 @@ const ListProfiles = () => {
     const modal = useModalState();
     const webhook = useWebhook();
     const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, profile: null });
-    const [editProfile, setEditProfile] = useState({ isOpen: false, profile: null, newCategory: '' });
+    const [editProfile, setEditProfile] = useState({ isOpen: false, profile: null, newCategory: '', connections: [] });
+    const [editConnectionDropdownOpen, setEditConnectionDropdownOpen] = useState(null);
     const [editStatus, setEditStatus] = useState({ loading: false, message: null, type: null });
     const [selectedProfiles, setSelectedProfiles] = useState([]);
     const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
     const [bulkEditModal, setBulkEditModal] = useState({ isOpen: false, newCategory: '' });
     const [bulkEditStatus, setBulkEditStatus] = useState({ loading: false, message: null, type: null });
+    // List navigation state
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
 
     // Fetch profiles
     const { data: profiles, loading, error, refetch } = useFetch(() => api.listProfiles({ page, pageSize }));
+
+    // Calculate counts
+    const counts = {
+        all: profiles?.length || 0,
+        instagram: profiles?.filter(p => {
+            const platform = (p.platform || '').toLowerCase();
+            return platform === 'instagram';
+        })?.length || 0,
+        x: profiles?.filter(p => {
+            const platform = (p.platform || '').toLowerCase();
+            return platform === 'x' || platform === 'twitter';
+        })?.length || 0
+    };
+
+    // Filter profiles
+    const filteredProfiles = profiles?.filter(profile => {
+        if (filter === 'all') return true;
+        const platform = (profile.platform || '').toLowerCase();
+        if (filter === 'Instagram') return platform === 'instagram';
+        if (filter === 'X') return platform === 'x' || platform === 'twitter';
+        return true;
+    }) || [];
 
     // Refetch when pagination changes
     React.useEffect(() => {
@@ -104,7 +129,8 @@ const ListProfiles = () => {
             const payload = {
                 action: 'editprofile',
                 profile_url: editProfile.profile.profile_url,
-                category: editProfile.newCategory.trim()
+                category: editProfile.newCategory.trim(),
+                connections: editProfile.connections
             };
 
             const response = await fetch(webhookUrl, {
@@ -120,13 +146,14 @@ const ListProfiles = () => {
             if (response.ok) {
                 setEditStatus({
                     loading: false,
-                    message: responseData.message || 'Kategori başarıyla güncellendi!',
+                    message: responseData.message || 'Profil başarıyla güncellendi!',
                     type: 'success'
                 });
 
                 // Close modal and refresh after 2 seconds
                 setTimeout(() => {
-                    setEditProfile({ isOpen: false, profile: null, newCategory: '' });
+                    setEditProfile({ isOpen: false, profile: null, newCategory: '', connections: [] });
+                    setEditConnectionDropdownOpen(null);
                     setEditStatus({ loading: false, message: null, type: null });
                     refetch();
                 }, 2000);
@@ -136,6 +163,71 @@ const ListProfiles = () => {
         } catch (err) {
             setEditStatus({ loading: false, message: 'Bir hata oluştu: ' + err.message, type: 'error' });
         }
+    };
+
+    // Connection handlers for Edit Modal
+    const sanitizeUsername = (text) => {
+        if (!text) return '';
+        // If it's a URL, extract the last part of the path
+        try {
+            if (text.includes('://') || text.includes('www.')) {
+                const url = text.startsWith('http') ? text : `https://${text}`;
+                const urlObj = new URL(url);
+                const pathParts = urlObj.pathname.split('/').filter(part => part);
+                let username = pathParts[pathParts.length - 1] || '';
+                // Remove @ if it's the first character
+                return username.startsWith('@') ? username.substring(1) : username;
+            }
+        } catch (e) {
+            // Not a valid URL, fallback to direct text processing
+        }
+
+        // Remove @ if it's the first character
+        let cleanText = text.trim();
+        if (cleanText.startsWith('@')) {
+            cleanText = cleanText.substring(1);
+        }
+
+        // If there's still a slash (e.g. from a partial path), take the last part
+        if (cleanText.includes('/')) {
+            const parts = cleanText.split('/').filter(p => p);
+            cleanText = parts[parts.length - 1] || '';
+        }
+
+        return cleanText;
+    };
+
+    const addEditConnection = () => {
+        setEditProfile(prev => ({
+            ...prev,
+            connections: [...prev.connections, { platform: 'instagram', url: '' }]
+        }));
+    };
+
+    const removeEditConnection = (index) => {
+        setEditProfile(prev => ({
+            ...prev,
+            connections: prev.connections.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updateEditConnection = (index, field, value) => {
+        const processedValue = field === 'url' ? sanitizeUsername(value) : value;
+        setEditProfile(prev => ({
+            ...prev,
+            connections: prev.connections.map((conn, i) =>
+                i === index ? { ...conn, [field]: processedValue } : conn
+            )
+        }));
+    };
+
+    const toggleEditConnectionDropdown = (index) => {
+        setEditConnectionDropdownOpen(prev => prev === index ? null : index);
+    };
+
+    const selectEditConnectionPlatform = (index, platform) => {
+        updateEditConnection(index, 'platform', platform);
+        setEditConnectionDropdownOpen(null);
     };
 
     // Handle bulk delete
@@ -221,30 +313,8 @@ const ListProfiles = () => {
     };
 
     const toggleSelectAll = () => {
-        setSelectedProfiles(selectedProfiles.length === filteredProfiles.length ? [] : filteredProfiles.map(p => p.id));
+        setSelectedProfiles(selectedProfiles.length === (filteredProfiles?.length || 0) ? [] : filteredProfiles.map(p => p.id));
     };
-
-    // Calculate counts
-    const counts = {
-        all: profiles?.length || 0,
-        instagram: profiles?.filter(p => {
-            const platform = (p.platform || '').toLowerCase();
-            return platform === 'instagram';
-        }).length || 0,
-        x: profiles?.filter(p => {
-            const platform = (p.platform || '').toLowerCase();
-            return platform === 'x' || platform === 'twitter';
-        }).length || 0
-    };
-
-    // Filter profiles
-    const filteredProfiles = profiles?.filter(profile => {
-        if (filter === 'all') return true;
-        const platform = (profile.platform || '').toLowerCase();
-        if (filter === 'Instagram') return platform === 'instagram';
-        if (filter === 'X') return platform === 'x' || platform === 'twitter';
-        return true;
-    }) || [];
 
     const getCategoryBadgeColor = (category) => {
         if (!category || category === '-') return darkMode
@@ -483,7 +553,15 @@ const ListProfiles = () => {
                                                 {/* Action Buttons */}
                                                 <div className="flex flex-col gap-2 ml-4 self-center">
                                                     <button
-                                                        onClick={() => setEditProfile({ isOpen: true, profile, newCategory: profile.category || '' })}
+                                                        onClick={() => setEditProfile({
+                                                            isOpen: true,
+                                                            profile,
+                                                            newCategory: profile.category || '',
+                                                            connections: (profile.connections || []).map(conn => ({
+                                                                ...conn,
+                                                                url: sanitizeUsername(conn.url)
+                                                            }))
+                                                        })}
                                                         className={`p-2 rounded-lg transition-all ${darkMode ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/40' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
                                                         title="Düzenle"
                                                     >
@@ -701,34 +779,107 @@ const ListProfiles = () => {
                             />
                         </div>
 
+                        <div className={`h-px w-full mb-6 ${darkMode ? 'bg-[#334155]' : 'bg-gray-100'}`} />
+
+                        {/* Connections Section */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <label className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Bağlantılar
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addEditConnection}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:text-blue-600 transition-colors bg-blue-500/10 px-2 py-1 rounded-md"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Yeni Ekle
+                                </button>
+                            </div>
+
+                            {editProfile.connections.length === 0 ? (
+                                <div className={`text-center py-6 rounded-xl border-2 border-dashed ${darkMode ? 'border-slate-800 text-slate-500' : 'border-gray-100 text-gray-400'}`}>
+                                    <p className="text-sm">Henüz bağlantı eklenmemiş</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {editProfile.connections.map((conn, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <div className="relative flex-shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleEditConnectionDropdown(index)}
+                                                    className={`h-[38px] flex items-center gap-2 px-3 rounded-lg border text-sm transition-all ${darkMode ? 'bg-[#0F172A] border-[#334155] text-white' : 'bg-gray-50 border-gray-200 text-black'}`}
+                                                >
+                                                    <PlatformIcon platform={conn.platform} className="w-4 h-4" />
+                                                    <ChevronDown className={`w-3 h-3 transition-transform ${editConnectionDropdownOpen === index ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                {editConnectionDropdownOpen === index && (
+                                                    <div className={`absolute top-full left-0 mt-1 w-40 rounded-lg shadow-xl py-1 z-50 ${darkMode ? 'bg-[#1E293B] border border-[#334155]' : 'bg-white border border-gray-100'}`}>
+                                                        {Object.values(PLATFORMS).map(platform => (
+                                                            <button
+                                                                key={platform}
+                                                                type="button"
+                                                                onClick={() => selectEditConnectionPlatform(index, platform.toLowerCase())}
+                                                                className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-blue-500/10 transition-colors ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                                            >
+                                                                <PlatformIcon platform={platform} className="w-4 h-4" />
+                                                                <span>{platform}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <input
+                                                type="url"
+                                                value={conn.url}
+                                                onChange={(e) => updateEditConnection(index, 'url', e.target.value)}
+                                                placeholder="kullanıcı adı"
+                                                className={`flex-1 px-3 py-2 rounded-lg border text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all ${darkMode ? 'bg-[#0F172A] border-[#334155] text-white placeholder-gray-500' : 'bg-white border-gray-300 text-black'}`}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeEditConnection(index)}
+                                                className={`p-2 rounded-lg transition-colors ${darkMode ? 'text-red-400 hover:bg-red-400/10' : 'text-red-500 hover:bg-red-50'}`}
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Status Message */}
                         {editStatus.message && (
-                            <div className={`mb-4 p-3 rounded-lg text-sm ${editStatus.type === 'error'
-                                ? darkMode ? 'bg-red-900/20 text-red-400 border border-red-800' : 'bg-red-50 text-red-600 border border-red-200'
-                                : darkMode ? 'bg-green-900/20 text-green-400 border border-green-800' : 'bg-green-50 text-green-600 border border-green-200'
+                            <div className={`mb-6 p-4 rounded-xl text-sm font-medium border ${editStatus.type === 'error'
+                                ? darkMode ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-50 text-red-600 border-red-100'
+                                : darkMode ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-green-50 text-green-600 border-green-100'
                                 }`}>
                                 {editStatus.message}
                             </div>
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={handleEditProfile}
-                                disabled={editStatus.loading}
-                                className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-                            >
-                                {editStatus.loading ? 'Kaydediliyor...' : 'Kaydet'}
-                            </button>
+                        <div className="flex gap-4">
                             <button
                                 onClick={() => {
-                                    setEditProfile({ isOpen: false, profile: null, newCategory: '' });
+                                    setEditProfile({ isOpen: false, profile: null, newCategory: '', connections: [] });
+                                    setEditConnectionDropdownOpen(null);
                                     setEditStatus({ loading: false, message: null, type: null });
                                 }}
                                 disabled={editStatus.loading}
-                                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
+                                className={`flex-1 py-3 rounded-xl font-bold transition-all ${darkMode ? 'bg-[#0F172A] text-gray-400 hover:bg-[#0F172A]/80' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                             >
                                 İptal
+                            </button>
+                            <button
+                                onClick={handleEditProfile}
+                                disabled={editStatus.loading}
+                                className={`flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2`}
+                            >
+                                {editStatus.loading ? <LoadingSpinner size="sm" color="white" fullPage={false} message={null} /> : 'Kaydet'}
                             </button>
                         </div>
                     </div>
