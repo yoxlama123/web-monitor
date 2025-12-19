@@ -1,9 +1,25 @@
 import React from 'react';
-import { Instagram, LayoutGrid, Globe, Plus, Trash2, List } from 'lucide-react';
+import { Instagram, LayoutGrid, Globe, Plus, Trash2, List, LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { XIcon } from '../utils/ui';
 
-const Layout = ({
+interface LayoutProps {
+    children: React.ReactNode;
+    darkMode: boolean;
+    setDarkMode: (value: boolean) => void;
+    filter: string;
+    setFilter: (value: string) => void;
+    counts: {
+        all: number;
+        instagram: number;
+        x: number;
+    };
+    onAddUrl: () => void;
+    onRemoveUrl: () => void;
+    currentPage?: 'home' | 'list';
+}
+
+const Layout: React.FC<LayoutProps> = ({
     children,
     darkMode,
     setDarkMode,
@@ -16,7 +32,7 @@ const Layout = ({
 }) => {
     const navigate = useNavigate();
 
-    const FilterButton = ({ id, label, icon: Icon, count }) => (
+    const FilterButton: React.FC<{ id: string; label: string; icon: LucideIcon | React.FC<{ className?: string }>; count: number }> = ({ id, label, icon: Icon, count }) => (
         <button
             onClick={() => setFilter(id)}
             className={`
@@ -43,7 +59,7 @@ const Layout = ({
         </button>
     );
 
-    const ActionButton = ({ label, icon: Icon, onClick, disabled, variant = 'default' }) => {
+    const ActionButton: React.FC<{ label: string; icon: LucideIcon; onClick: () => void; disabled?: boolean; variant?: 'default' | 'danger' }> = ({ label, icon: Icon, onClick, disabled, variant = 'default' }) => {
         const baseClasses = "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm";
         const variants = {
             default: darkMode
@@ -66,12 +82,6 @@ const Layout = ({
             </button>
         );
     };
-
-    const XIcon = ({ className }) => (
-        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-    );
 
     const rootClasses = darkMode
         ? 'min-h-screen bg-[#0F172A]'

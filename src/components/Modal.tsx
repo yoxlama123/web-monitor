@@ -3,8 +3,39 @@ import { Instagram, X, Plus, Trash2, ChevronDown } from 'lucide-react';
 import FormInput from './common/FormInput';
 import { PlatformIcon } from './icons/PlatformIcons';
 import { PLATFORMS } from '../constants';
+import { Connection } from '../types';
+import { XIcon } from '../utils/ui';
 
-const Modal = ({
+interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    type: 'add' | 'remove' | null;
+    darkMode: boolean;
+    formData: {
+        url: string;
+        category: string;
+        platform: string;
+        connections: Connection[];
+    };
+    onFormChange: (field: any, value: any) => void;
+    isPlatformDropdownOpen: boolean;
+    onPlatformToggle: () => void;
+    onPlatformSelect: (platform: string) => void;
+    status: {
+        loading: boolean;
+        message: string | null;
+        type: 'success' | 'error';
+    };
+    onSubmit: () => void;
+    connectionDropdownOpen: number | null;
+    addConnection: () => void;
+    removeConnection: (index: number) => void;
+    updateConnection: (index: number, field: keyof Connection, value: string) => void;
+    toggleConnectionDropdown: (index: number) => void;
+    selectConnectionPlatform: (index: number, platform: string) => void;
+}
+
+const Modal: React.FC<ModalProps> = ({
     isOpen,
     onClose,
     type,
@@ -26,25 +57,19 @@ const Modal = ({
 }) => {
     if (!isOpen) return null;
 
-    const XIcon = ({ className }) => (
-        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-    );
-
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onMouseDown={(e) => {
+            onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
                 if (e.target === e.currentTarget) {
-                    e.currentTarget.dataset.backdropClicked = 'true';
+                    (e.currentTarget as any).dataset.backdropClicked = 'true';
                 }
             }}
-            onMouseUp={(e) => {
-                if (e.target === e.currentTarget && e.currentTarget.dataset.backdropClicked === 'true') {
+            onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => {
+                if (e.target === e.currentTarget && (e.currentTarget as any).dataset.backdropClicked === 'true') {
                     onClose();
                 }
-                delete e.currentTarget.dataset.backdropClicked;
+                delete (e.currentTarget as any).dataset.backdropClicked;
             }}
         >
             <div

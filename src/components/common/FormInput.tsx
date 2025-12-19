@@ -1,9 +1,14 @@
 import React from 'react';
 
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    label: string;
+    darkMode: boolean;
+}
+
 /**
  * Reusable form input component
  */
-const FormInput = ({
+const FormInput: React.FC<FormInputProps> = ({
     label,
     value,
     onChange,
@@ -26,8 +31,8 @@ const FormInput = ({
                 onChange={onChange}
                 placeholder={placeholder}
                 className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${darkMode
-                        ? 'bg-[#0F172A] border-[#334155] text-white placeholder-gray-500'
-                        : 'bg-white border-gray-300 text-black'
+                    ? 'bg-[#0F172A] border-[#334155] text-white placeholder-gray-500'
+                    : 'bg-white border-gray-300 text-black'
                     }`}
                 {...props}
             />

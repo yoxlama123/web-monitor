@@ -1,27 +1,25 @@
 import React from 'react';
 import { Instagram } from 'lucide-react';
+import { XIcon } from '../../utils/ui';
 
+interface IconProps {
+    className?: string;
+}
 
-const XIcon = ({ className }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-);
-
-const TikTokIcon = ({ className }) => (
+const TikTokIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
     </svg>
 );
 
-const OnlyFansIcon = ({ className }) => (
+const OnlyFansIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} viewBox="0 0 400 400" fill="currentColor">
         <path d="M137.5,75a125,125,0,1,0,125,125A125,125,0,0,0,137.5,75Zm0,162.5A37.5,37.5,0,1,1,175,200,37.45,37.45,0,0,1,137.5,237.5Z" />
         <path d="M278,168.75c31.76,9.14,69.25,0,69.25,0-10.88,47.5-45.38,77.25-95.13,80.87A124.73,124.73,0,0,1,137.5,325L175,205.81C213.55,83.3,233.31,75,324.73,75H387.5C377,121.25,340.81,156.58,278,168.75Z" />
     </svg>
 );
 
-const FanslyIcon = ({ className }) => (
+const FanslyIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} viewBox="0 0 394.7 324.7" fill="currentColor">
         <path d="M231.9,95.6c1.5,1.5,2.7,2.9,4,4.2c30.6,30.6,61.3,61.2,91.9,91.9c4.9,4.9,4.9,5.9-0.1,10.9
 	c-38.2,38.2-76.4,76.3-114.6,114.5c-10.3,10.3-20.6,10.3-30.9,0C130.7,265.5,78.8,214.5,27.9,162.4C0.3,134.2-6.9,99.8,6.6,62.8
@@ -37,7 +35,11 @@ const FanslyIcon = ({ className }) => (
     </svg>
 );
 
-export const PlatformIcon = ({ platform, className }) => {
+interface PlatformIconProps extends IconProps {
+    platform: string;
+}
+
+export const PlatformIcon: React.FC<PlatformIconProps> = ({ platform, className }) => {
     switch (platform.toLowerCase()) {
         case 'instagram':
             return <Instagram className={className} />;
@@ -55,4 +57,4 @@ export const PlatformIcon = ({ platform, className }) => {
     }
 };
 
-export { XIcon, TikTokIcon, OnlyFansIcon, FanslyIcon };
+export { TikTokIcon, OnlyFansIcon, FanslyIcon };

@@ -1,19 +1,28 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+interface AppContextType {
+    darkMode: boolean;
+    setDarkMode: (value: boolean) => void;
+    filter: string;
+    setFilter: (value: string) => void;
+    isGlobalMuted: boolean;
+    setIsGlobalMuted: (value: boolean) => void;
+}
 
 /**
  * App Context for global state management
  */
-const AppContext = createContext(undefined);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 /**
  * App Provider component
  */
-export const AppProvider = ({ children }) => {
+export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [darkMode, setDarkMode] = useState(true);
     const [filter, setFilter] = useState('all');
     const [isGlobalMuted, setIsGlobalMuted] = useState(true);
 
-    const value = {
+    const value: AppContextType = {
         darkMode,
         setDarkMode,
         filter,
@@ -31,7 +40,7 @@ export const AppProvider = ({ children }) => {
 
 /**
  * Custom hook to use App context
- * @returns {object} Context value
+ * @returns {AppContextType} Context value
  */
 export const useApp = () => {
     const context = useContext(AppContext);

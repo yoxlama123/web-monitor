@@ -2,6 +2,9 @@
  * API Service for centralized data fetching
  */
 class ApiService {
+    baseUrl: string | undefined;
+    commandUrl: string | undefined;
+
     constructor() {
         this.baseUrl = import.meta.env.VITE_WEBHOOK_URL;
         this.commandUrl = import.meta.env.VITE_COMMAND_WEBHOOK_URL || this.baseUrl;
@@ -9,11 +12,8 @@ class ApiService {
 
     /**
      * Generic request handler
-     * @param {string} url - Request URL
-     * @param {object} options - Fetch options
-     * @returns {Promise<any>} Response data
      */
-    async request(url, options = {}) {
+    async request(url: string, options: RequestInit = {}): Promise<any> {
         const response = await fetch(url, {
             headers: {
                 'Content-Type': 'application/json',
@@ -32,11 +32,8 @@ class ApiService {
 
     /**
      * Get posts from webhook
-     * @param {number} page - Page number (default: 1)
-     * @param {number} pageSize - Page size (default: 10)
-     * @returns {Promise<Array>} Posts array
      */
-    async getPosts(page = 1, pageSize = 10) {
+    async getPosts(page: number = 1, pageSize: number | 'all' = 10): Promise<any[]> {
         if (!this.baseUrl) {
             throw new Error('Webhook URL tanımlanmamış. Lütfen .env dosyasını kontrol edin.');
         }
@@ -52,7 +49,7 @@ class ApiService {
         });
 
         // Normalize response to array
-        let posts = [];
+        let posts: any[] = [];
         if (Array.isArray(data)) {
             posts = data;
         } else if (data && typeof data === 'object') {
@@ -68,12 +65,9 @@ class ApiService {
 
     /**
      * Add URL to monitoring
-     * @param {string} url - Profile URL
-     * @param {string} category - Category (optional)
-     * @param {string} platform - Platform name
-     * @returns {Promise<object>} Response data
      */
-    async addUrl(url, category, platform) {
+    async addUrl(url: string, category: string | null, platform: string): Promise<any> {
+        if (!this.commandUrl) return;
         return this.request(this.commandUrl, {
             method: 'POST',
             body: JSON.stringify({
@@ -87,11 +81,9 @@ class ApiService {
 
     /**
      * Remove URL from monitoring
-     * @param {string} url - Profile URL
-     * @param {string} platform - Platform name
-     * @returns {Promise<object>} Response data
      */
-    async removeUrl(url, platform) {
+    async removeUrl(url: string, platform: string): Promise<any> {
+        if (!this.commandUrl) return;
         return this.request(this.commandUrl, {
             method: 'POST',
             body: JSON.stringify({
@@ -104,9 +96,9 @@ class ApiService {
 
     /**
      * List all monitored profiles
-     * @returns {Promise<Array>} Profiles array
      */
-    async listProfiles(options = {}) {
+    async listProfiles(options: any = {}): Promise<any[]> {
+        if (!this.commandUrl) return [];
         const payload = {
             action: 'listurl',
             ...options
@@ -132,3 +124,4 @@ class ApiService {
 
 // Export singleton instance
 export const api = new ApiService();
+export default api;

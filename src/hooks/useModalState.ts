@@ -1,27 +1,27 @@
 import { useState } from 'react';
 import { PLATFORMS } from '../constants';
+import { Connection } from '../types';
 
-/**
- * Custom hook for modal state management
- * Handles modal open/close, form data, and platform dropdown
- */
+export interface FormData {
+    url: string;
+    category: string;
+    platform: string;
+    connections: Connection[];
+}
+
 export const useModalState = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [type, setType] = useState(null); // 'add' or 'remove'
-    const [formData, setFormData] = useState({
+    const [type, setType] = useState<'add' | 'remove' | null>(null);
+    const [formData, setFormData] = useState<FormData>({
         url: '',
         category: '',
         platform: PLATFORMS.INSTAGRAM,
         connections: []
     });
     const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
-    const [connectionDropdownOpen, setConnectionDropdownOpen] = useState(null); // index of open dropdown
+    const [connectionDropdownOpen, setConnectionDropdownOpen] = useState<number | null>(null);
 
-    /**
-     * Open modal with specified type
-     * @param {string} modalType - 'add' or 'remove'
-     */
-    const openModal = (modalType) => {
+    const openModal = (modalType: 'add' | 'remove') => {
         setType(modalType);
         setIsOpen(true);
         setFormData({
@@ -34,9 +34,6 @@ export const useModalState = () => {
         setConnectionDropdownOpen(null);
     };
 
-    /**
-     * Close modal and reset state
-     */
     const closeModal = () => {
         setIsOpen(false);
         setType(null);
@@ -44,35 +41,19 @@ export const useModalState = () => {
         setConnectionDropdownOpen(null);
     };
 
-    /**
-     * Update form field
-     * @param {string} field - Field name
-     * @param {any} value - Field value
-     */
-    const updateField = (field, value) => {
+    const updateField = (field: keyof FormData, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    /**
-     * Update multiple fields at once
-     * @param {object} updates - Object with field updates
-     */
-    const updateFields = (updates) => {
+    const updateFields = (updates: Partial<FormData>) => {
         setFormData(prev => ({ ...prev, ...updates }));
     };
 
-    /**
-     * Toggle platform dropdown
-     */
     const togglePlatformDropdown = () => {
         setIsPlatformDropdownOpen(prev => !prev);
     };
 
-    /**
-     * Set platform and close dropdown
-     * @param {string} platform - Platform name
-     */
-    const selectPlatform = (platform) => {
+    const selectPlatform = (platform: string) => {
         updateField('platform', platform);
         setIsPlatformDropdownOpen(false);
     };
@@ -84,14 +65,14 @@ export const useModalState = () => {
         }));
     };
 
-    const removeConnection = (index) => {
+    const removeConnection = (index: number) => {
         setFormData(prev => ({
             ...prev,
             connections: prev.connections.filter((_, i) => i !== index)
         }));
     };
 
-    const updateConnection = (index, field, value) => {
+    const updateConnection = (index: number, field: keyof Connection, value: string) => {
         setFormData(prev => ({
             ...prev,
             connections: prev.connections.map((conn, i) =>
@@ -100,11 +81,11 @@ export const useModalState = () => {
         }));
     };
 
-    const toggleConnectionDropdown = (index) => {
+    const toggleConnectionDropdown = (index: number) => {
         setConnectionDropdownOpen(prev => prev === index ? null : index);
     };
 
-    const selectConnectionPlatform = (index, platform) => {
+    const selectConnectionPlatform = (index: number, platform: string) => {
         updateConnection(index, 'platform', platform);
         setConnectionDropdownOpen(null);
     };

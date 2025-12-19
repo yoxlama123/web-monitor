@@ -1,31 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-/**
- * Custom hook for data fetching with auto-refresh
- * @param {Function} fetchFn - Async function to fetch data
- * @param {number} interval - Auto-refresh interval in ms (0 to disable)
- * @returns {object} { data, loading, error, refetch }
- */
-export const useFetch = (fetchFn, interval = 0) => {
-    const [data, setData] = useState(null);
+export function useFetch<T>(fetchFn: () => Promise<T>, deps: any[] = [], interval: number = 0) {
+    const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const fetchFnRef = useRef(fetchFn);
+    const isFirstRun = useRef(true);
 
-    // Update ref when fetchFn changes
     useEffect(() => {
         fetchFnRef.current = fetchFn;
     }, [fetchFn]);
 
-    /**
-     * Fetch data
-     */
     const fetchData = useCallback(async () => {
         try {
             setError(null);
             const result = await fetchFnRef.current();
             setData(result);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Fetch error:', err);
             setError(err.message);
         } finally {
@@ -33,20 +24,25 @@ export const useFetch = (fetchFn, interval = 0) => {
         }
     }, []);
 
-    /**
-     * Refetch data manually
-     */
     const refetch = useCallback(() => {
         setLoading(true);
         fetchData();
     }, [fetchData]);
 
-    // Initial fetch
+    // İlk yüklemede bir kez fetch yap
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    // Auto-refresh
+    // deps değiştiğinde yeniden fetch yap (ilk render hariç)
+    useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
+        refetch();
+    }, deps);
+
     useEffect(() => {
         if (interval > 0) {
             const intervalId = setInterval(() => {
@@ -64,4 +60,4 @@ export const useFetch = (fetchFn, interval = 0) => {
         error,
         refetch
     };
-};
+}

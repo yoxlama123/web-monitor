@@ -3,9 +3,17 @@ import VideoPlayer from './VideoPlayer';
 import { Instagram } from 'lucide-react';
 import { truncateText } from '../utils/text';
 import { formatTimeAgo } from '../utils/date';
-import { ANIMATION_DELAYS, CARD_DIMENSIONS, TEXT_LIMITS, PLATFORMS } from '../constants';
+import { ANIMATION_DELAYS, TEXT_LIMITS } from '../constants';
+import { Post } from '../types/post';
+import { XIcon } from '../utils/ui';
 
-const PostCard = ({ post, index, darkMode }) => {
+interface PostCardProps {
+    post: Post & { profile_name?: string; __sort_date?: string; post_video?: string; post_image?: string; post_text?: string; url?: string };
+    index: number;
+    darkMode: boolean;
+}
+
+const PostCard: React.FC<PostCardProps> = ({ post, index, darkMode }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -31,12 +39,10 @@ const PostCard = ({ post, index, darkMode }) => {
                         </div>
                     </div>
                     <div className={darkMode ? 'text-[#E2E8F0]' : 'text-gray-800'}>
-                        {post.platform?.toLowerCase() === 'instagram' ? (
+                        {(post.platform || '').toLowerCase() === 'instagram' ? (
                             <Instagram className="w-6 h-6 flex-shrink-0" />
                         ) : (
-                            <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                            </svg>
+                            <XIcon className="w-6 h-6 flex-shrink-0" />
                         )}
                     </div>
                 </div>

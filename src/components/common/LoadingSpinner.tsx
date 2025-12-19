@@ -1,12 +1,23 @@
 import React from 'react';
 
+interface LoadingSpinnerProps {
+    darkMode?: boolean;
+    message?: string | null;
+    size?: 'sm' | 'md' | 'lg';
+    fullPage?: boolean;
+    color?: 'blue' | 'white' | 'gray';
+}
+
 /**
  * Reusable loading spinner component
  */
-/**
- * Reusable loading spinner component
- */
-const LoadingSpinner = ({ darkMode, message = 'Yükleniyor...', size = 'md', fullPage = true, color = 'blue' }) => {
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+    darkMode,
+    message = 'Yükleniyor...',
+    size = 'md',
+    fullPage = true,
+    color = 'blue'
+}) => {
     const sizeClasses = {
         sm: 'w-4 h-4 border-2',
         md: 'w-8 h-8 border-4',

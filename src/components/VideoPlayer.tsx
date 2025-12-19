@@ -2,10 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-const VideoPlayer = ({ src, poster }) => {
+interface VideoPlayerProps {
+    src: string;
+    poster?: string;
+}
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster }) => {
     const { isGlobalMuted, setIsGlobalMuted } = useApp();
-    const videoRef = useRef(null);
-    const containerRef = useRef(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(isGlobalMuted);
     const [volume, setVolume] = useState(isGlobalMuted ? 0 : 0.25);
@@ -15,7 +20,7 @@ const VideoPlayer = ({ src, poster }) => {
 
     // Animation state
     const [showAnimation, setShowAnimation] = useState(false);
-    const [animationIcon, setAnimationIcon] = useState('play');
+    const [animationIcon, setAnimationIcon] = useState<'play' | 'pause'>('play');
 
     // Sync local state when global state changes
     useEffect(() => {
@@ -26,7 +31,7 @@ const VideoPlayer = ({ src, poster }) => {
                 setVolume(0.25);
             }
         }
-    }, [isGlobalMuted]);
+    }, [isGlobalMuted, isMuted, volume]);
 
     useEffect(() => {
         if (videoRef.current) {
@@ -111,13 +116,13 @@ const VideoPlayer = ({ src, poster }) => {
         };
     }, []); // Run once on mount
 
-    const triggerAnimation = (type) => {
+    const triggerAnimation = (type: 'play' | 'pause') => {
         setAnimationIcon(type);
         setShowAnimation(true);
         setTimeout(() => setShowAnimation(false), 500);
     };
 
-    const togglePlay = (e) => {
+    const togglePlay = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (videoRef.current) {
             if (isPlaying) {
@@ -131,7 +136,7 @@ const VideoPlayer = ({ src, poster }) => {
         }
     };
 
-    const toggleMute = (e) => {
+    const toggleMute = (e: React.MouseEvent) => {
         e.stopPropagation();
         const newMutedState = !isMuted;
 
@@ -149,7 +154,7 @@ const VideoPlayer = ({ src, poster }) => {
         setIsGlobalMuted(newMutedState);
     };
 
-    const handleVolumeChange = (e) => {
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.stopPropagation();
         const newVolume = parseFloat(e.target.value);
         if (videoRef.current) {
@@ -162,12 +167,12 @@ const VideoPlayer = ({ src, poster }) => {
         }
     };
 
-    const handleSeek = (e) => {
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.stopPropagation();
         const seekTime = (parseFloat(e.target.value) / 100) * duration;
         if (videoRef.current) {
             videoRef.current.currentTime = seekTime;
-            setProgress(e.target.value);
+            setProgress(Number(e.target.value));
         }
     };
 

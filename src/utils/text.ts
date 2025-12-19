@@ -8,8 +8,8 @@
  * @param {number} maxLength - Maximum length
  * @returns {string} Truncated text with ellipsis
  */
-export const truncateText = (text, maxLength) => {
-    if (!text || text.length <= maxLength) return text;
+export const truncateText = (text: string | undefined, maxLength: number): string => {
+    if (!text || text.length <= maxLength) return text || '';
 
     let truncated = text.substring(0, maxLength);
 

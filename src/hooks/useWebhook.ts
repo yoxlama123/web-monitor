@@ -1,21 +1,11 @@
 import { useState } from 'react';
 
-/**
- * Custom hook for webhook API calls
- * Handles loading, error states, and command execution
- */
 export const useWebhook = () => {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
-    /**
-     * Send command to webhook
-     * @param {string} action - Action type (addurl, removeurl, listurl)
-     * @param {object} data - Command data
-     * @returns {Promise<object>} Response data
-     */
-    const sendCommand = async (action, data = {}) => {
+    const sendCommand = async (action: string, data: any = {}) => {
         setLoading(true);
         setError(null);
         setSuccess(null);
@@ -49,7 +39,7 @@ export const useWebhook = () => {
             setSuccess(responseData.message || 'İşlem başarılı');
             return responseData;
 
-        } catch (err) {
+        } catch (err: any) {
             console.error('Webhook Error:', err);
             setError(err.message);
             throw err;
@@ -58,9 +48,6 @@ export const useWebhook = () => {
         }
     };
 
-    /**
-     * Reset states
-     */
     const reset = () => {
         setLoading(false);
         setError(null);

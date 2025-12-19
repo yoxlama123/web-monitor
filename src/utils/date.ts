@@ -7,7 +7,7 @@
  * @param {string} dateString - ISO date string
  * @returns {string} Formatted date or 'N/A'
  */
-export const formatDate = (dateString) => {
+export const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return 'N/A';
 
     try {
@@ -29,13 +29,13 @@ export const formatDate = (dateString) => {
  * @param {number|string} timestamp - Unix timestamp (ms) or date string
  * @returns {string} Formatted relative time
  */
-export const formatTimeAgo = (timestamp) => {
+export const formatTimeAgo = (timestamp: number | string | undefined): string => {
     if (!timestamp) return '';
 
     const now = Date.now();
     // Ensure timestamp is treated as number if it's a numeric string
-    const timeVal = !isNaN(timestamp) ? Number(timestamp) : timestamp;
-    const date = new Date(timeVal).getTime();
+    const timeVal = typeof timestamp === 'string' && !isNaN(Number(timestamp)) ? Number(timestamp) : timestamp;
+    const date = new Date(timeVal as any).getTime();
 
     if (isNaN(date)) return 'N/A';
 
