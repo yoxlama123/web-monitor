@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import { Post } from '../types/post';
 import { useWebhook } from './useWebhook';
 import { buildProfileUrl } from '../utils/url';
-import { ANIMATION_DELAYS } from '../constants';
+import { ANIMATION_DELAYS } from '@/constants';
 
 export const usePostManager = (pageSize: number = 10) => {
     const webhook = useWebhook();

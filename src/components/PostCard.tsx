@@ -3,7 +3,7 @@ import VideoPlayer from './VideoPlayer';
 import { Instagram } from 'lucide-react';
 import { truncateText } from '../utils/text';
 import { formatTimeAgo } from '../utils/date';
-import { ANIMATION_DELAYS, TEXT_LIMITS } from '../constants';
+import { ANIMATION_DELAYS, TEXT_LIMITS } from '@/constants';
 import { Post } from '../types/post';
 import { XIcon } from '../utils/ui';
 

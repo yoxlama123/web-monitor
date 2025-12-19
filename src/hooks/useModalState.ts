@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PLATFORMS } from '../constants';
+import { PLATFORMS } from '@/constants';
 import { Connection } from '../types';
 
 export interface FormData {

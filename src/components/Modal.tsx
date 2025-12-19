@@ -2,7 +2,7 @@ import React from 'react';
 import { Instagram, X, Plus, Trash2, ChevronDown } from 'lucide-react';
 import FormInput from './common/FormInput';
 import { PlatformIcon } from './icons/PlatformIcons';
-import { PLATFORMS } from '../constants';
+import { PLATFORMS } from '@/constants';
 import { Connection } from '../types';
 import { XIcon } from '../utils/ui';
 
