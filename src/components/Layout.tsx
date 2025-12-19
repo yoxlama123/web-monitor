@@ -2,6 +2,7 @@ import React from 'react';
 import { Instagram, LayoutGrid, Globe, Plus, Trash2, List, LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { XIcon } from '../utils/ui';
+import BottomNavigation from './BottomNavigation';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -112,7 +113,8 @@ const Layout: React.FC<LayoutProps> = ({
             </header>
 
             <div className="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
-                <aside className={`lg:w-72 flex-shrink-0 border-r ${darkMode ? 'bg-[#1E293B]/30 border-[#334155]' : 'bg-white/50 border-gray-200'}`}>
+                {/* Left Sidebar - Hidden on mobile */}
+                <aside className={`hidden md:block lg:w-72 flex-shrink-0 border-r ${darkMode ? 'bg-[#1E293B]/30 border-[#334155]' : 'bg-white/50 border-gray-200'}`}>
                     <div className="sticky top-0 p-6 space-y-8">
                         <div>
                             <div className="flex items-center gap-3 px-2 mb-6">
@@ -128,11 +130,13 @@ const Layout: React.FC<LayoutProps> = ({
                     </div>
                 </aside>
 
-                <main className="flex-1 min-w-0 py-8 px-4">
+                {/* Main Content - Add bottom padding on mobile for bottom nav */}
+                <main className="flex-1 min-w-0 py-8 px-4 pb-24 md:pb-8">
                     {children}
                 </main>
 
-                <aside className={`lg:w-72 flex-shrink-0 border-l ${darkMode ? 'bg-[#1E293B]/30 border-[#334155]' : 'bg-white/50 border-gray-200'}`}>
+                {/* Right Sidebar - Hidden on mobile */}
+                <aside className={`hidden md:block lg:w-72 flex-shrink-0 border-l ${darkMode ? 'bg-[#1E293B]/30 border-[#334155]' : 'bg-white/50 border-gray-200'}`}>
                     <div className="sticky top-0 p-6 space-y-8">
                         <div>
                             <h2 className={`px-2 text-lg font-bold mb-6 ${darkMode ? 'text-white' : 'text-black'}`}>Yönetim</h2>
@@ -148,6 +152,16 @@ const Layout: React.FC<LayoutProps> = ({
                         </div>
                     </div>
                 </aside>
+            </div>
+
+            {/* Bottom Navigation - Only visible on mobile */}
+            <div className="md:hidden">
+                <BottomNavigation
+                    darkMode={darkMode}
+                    onAddUrl={onAddUrl}
+                    onRemoveUrl={onRemoveUrl}
+                    currentPage={currentPage}
+                />
             </div>
         </div>
     );
