@@ -1,0 +1,24 @@
+{
+  "name": "Node.js & TypeScript (Monitoring Dashboard)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+  "mounts": [
+    {
+      "source": "${localWorkspaceFolderBasename}-node-modules",
+      "target": "${containerWorkspaceFolder}/node_modules",
+      "type": "volume"
+    }
+  ],
+  "forwardPorts": [5173],
+  // Önce izinleri düzeltiyoruz, sonra npm install yapıyoruz
+  "postCreateCommand": "sudo chown -R node node_modules && npm install",
+  "remoteUser": "node"
+}
